@@ -20,6 +20,7 @@ const client = new MongoClient(uri, {
   }
 });
 const menucollection = client.db("BistroDB").collection("menu");
+const reviewscollection = client.db("BistroDB").collection("reviews");
 
 
 async function run() {
@@ -33,6 +34,13 @@ async function run() {
         // console.log(result)
         res.send(result);
     })
+    
+    app.get('/reviews',async(req,res)=>{
+        const result = await reviewscollection.find().toArray();
+        // console.log(result)
+        res.send(result);
+    })
+
     await client.db("admin").command({ ping: 1 });
     console.log("Pinged your deployment. You successfully connected to MongoDB!");
   } finally {
