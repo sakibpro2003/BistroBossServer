@@ -30,6 +30,12 @@ async function run() {
     // await client.connect();
     // Send a ping to confirm a successful connection
 
+    // get cart data
+    app.get('/cartData',async(req,res)=>{
+      const result = await cartcollection.find().toArray();
+      res.send(result);
+    })
+
     app.get('/menu',async(req,res)=>{
         const result = await menucollection.find().toArray();
         // console.log(result)
