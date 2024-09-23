@@ -32,7 +32,9 @@ async function run() {
 
     // get cart data
     app.get('/cartData',async(req,res)=>{
-      const result = await cartcollection.find().toArray();
+      const email = req.query.email;
+      const query = {email: email};
+      const result = await cartcollection.find(query).toArray();
       res.send(result);
     })
 
@@ -50,6 +52,7 @@ async function run() {
 
     // cart item post 
     app.post("/cart",async(req,res)=>{
+     
       const cartItem = req.body;
       const cart = await cartcollection.insertOne(cartItem);
       res.send(cart)
