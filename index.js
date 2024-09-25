@@ -33,6 +33,14 @@ async function run() {
     // await client.connect();
     // Send a ping to confirm a successful connection
 
+
+    //delete user api
+    app.delete('/deleteuser/:id',async(req,res)=>{
+      const id = req.params.id;
+      const query = {_id: new ObjectId(id)};
+      const result = await usercollection.deleteOne(query);
+      res.send(result)
+    })
     //user related api
     app.post('/userdata',async(req,res)=>{
       const user = req.body;
@@ -43,6 +51,12 @@ async function run() {
         return res.send({message: 'user already exist', insertedId: null})
       }
       const result = await usercollection.insertOne(user);
+      res.send(result);
+    })
+
+    //get all users
+    app.get('/user',async(req,res)=>{
+      const result = await usercollection.find().toArray();
       res.send(result);
     })
     // get cart data
