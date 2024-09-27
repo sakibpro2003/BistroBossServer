@@ -33,7 +33,18 @@ async function run() {
     // await client.connect();
     // Send a ping to confirm a successful connection
 
-
+    //make admin 
+    app.patch('/user/admin/:id',async(req,res)=>{
+      const id = req.params.id;
+      const filter = {_id: new ObjectId(id)};
+      const updateDoc ={
+        $set:{
+          role: "admin"
+        }
+      }
+      const result = await usercollection.updateOne(filter,updateDoc);
+      res.send(result);
+    })
     //delete user api
     app.delete('/deleteuser/:id',async(req,res)=>{
       const id = req.params.id;
