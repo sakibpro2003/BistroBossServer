@@ -1,5 +1,6 @@
 const express = require("express");
 const app = express();
+const jwt = require("jsonwebtoken");
 const cors = require("cors");
 require('dotenv').config()
 
@@ -33,6 +34,13 @@ async function run() {
     // await client.connect();
     // Send a ping to confirm a successful connection
 
+
+    //jwt related api
+    app.post('/jwt',async(req,res)=>{
+      const user = req.body;
+      const token = jwt.sign(user,process.env.ACCESS_TOKEN_SECRET,{expiresIn:'1h'});
+      res.send({token})
+    })
     //make admin 
     app.patch('/user/admin/:id',async(req,res)=>{
       const id = req.params.id;
