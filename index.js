@@ -78,19 +78,31 @@ async function run() {
     const verifyToken = (req, res, next) => {
       console.log(req.headers);
       if(!req.headers.authorization){
-        return res.status(401).send({message: 'forbidden access'});
+        return res.status(401).send({message: 'unauthrized access'});
       }
       const token = req.headers.authorization.split(" ")[1];
       // next();
       jwt.verify(token,process.env.ACCESS_TOKEN_SECRET,(err,decoded)=>{
         if(err){
-          return res.status(401).send({message:"forbidden"})
+          return res.status(401).send({message:"unauthrized access"})
         }
         req.decoded = decoded;
         console.log("decoded",req.decoded);
         next();
       });
     };
+
+
+    const verifyAdmin =async (req,res,next)=>{
+      const email = req.decoded.email;
+      const query = {email: email};
+      const user = await usercollection.findOne(query);
+      const isAdmin = user?.role === "admin";
+      if(!isAdmin){
+        return res.status(403).send({message : "forbidden access"});
+      }
+      next();
+    }
 
 
     app.get('/users/admin/:email',verifyToken,async(req,res)=>{
@@ -109,7 +121,7 @@ async function run() {
     })
 
     //get all users
-    app.get("/user", async (req, res) => {
+    app.get("/user",verifyToken,verifyAdmin, async (req, res) => {
       const result = await usercollection.find().toArray();
       res.send(result);
     });
@@ -126,6 +138,12 @@ async function run() {
       // console.log(result)
       res.send(result);
     });
+
+    app.post('/menu', async(req,res)=>{
+      const item = req.body;
+      const result = await menucollection.insertOne(item);
+      res.send(result);
+    })
 
     app.get("/reviews", async (req, res) => {
       const result = await reviewscollection.find().toArray();
