@@ -25,6 +25,7 @@ const usercollection = client.db("BistroDB").collection("users");
 const menucollection = client.db("BistroDB").collection("menu");
 const reviewscollection = client.db("BistroDB").collection("reviews");
 const cartcollection = client.db("BistroDB").collection("cart");
+const testcollection = client.db("BistroDB").collection("test");
 
 async function run() {
   try {
@@ -59,11 +60,20 @@ async function run() {
       const result = await usercollection.deleteOne(query);
       res.send(result);
     });
+
+    //delete menu item by admin
+    app.delete('/menu/delete/:id',async(req,res)=>{
+      const id = req.params.id;
+      const query = {_id: new ObjectId(id) };
+      const result = await menucollection.deleteOne(query);
+      res.send(result);
+    })
     //user related api
     app.post("/userdata", async (req, res) => {
       const user = req.body;
       // console.log("got it")
       const query = { email: user.email };
+      // console.log(query)
       const existingUser = await usercollection.findOne(query);
       if (existingUser) {
         return res.send({ message: "user already exist", insertedId: null });
@@ -72,11 +82,52 @@ async function run() {
       res.send(result);
     });
 
+    app.patch('/menu/:id',async(req,res)=>{
+      const item = req.body;
+      const id = req.params.id;
+      const filter = {_id: new ObjectId(id) };
+      const updateDoc = {
+        $set:{
+          name:item.name,
+          price: item.price,
+          category: item.category,
+        }
+      }
+      const result = await menucollection.updateOne(filter,updateDoc);
+      res.send(result)
+    })
+
+    app.get('/menu/:id',async(req,res)=>{
+      const id = req.params.id;
+      const query = {_id: new ObjectId(id) };
+      const result = await menucollection.findOne(query);
+      res.send(result)
+    })
+
+    // get 1 menu item
+    // app.get('/menuitem/',async(req,res)=>{
+    //   const id = req.params.id;
+    //   console.log(id)
+    //   // const query = {_id: new ObjectId(id) };
+    //   const result =  await menucollection.find().toArray();
+    //   console.log(result)
+    //   res.send(result);
+    // })
+    // app.get('/item/:id',async(req,res)=>{
+    //   const id = req.params.id;
+    //   // console.log(id)
+    //   const query = {_id:new ObjectId(id)};
+    //   // console.log(query)
+    //   const result =  await testcollection.findOne(query);
+    //   // console.log(result)
+    //   res.send(result);
+    // })
+
     
 
     //middleware
     const verifyToken = (req, res, next) => {
-      console.log(req.headers);
+      // console.log(req.headers);
       if(!req.headers.authorization){
         return res.status(401).send({message: 'unauthrized access'});
       }
@@ -87,7 +138,7 @@ async function run() {
           return res.status(401).send({message:"unauthrized access"})
         }
         req.decoded = decoded;
-        console.log("decoded",req.decoded);
+        // console.log("decoded",req.decoded);
         next();
       });
     };
@@ -107,7 +158,7 @@ async function run() {
 
     app.get('/users/admin/:email',verifyToken,async(req,res)=>{
       const email = req.params.email;
-      console.log("98",email);
+      // console.log("98",email);
       if(!email === req.decoded.email){
         return res.status(401).send({message: "unauthrized access"});
       }
