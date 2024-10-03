@@ -1,5 +1,7 @@
 const express = require("express");
 const app = express();
+const stripe = require("stripe")('sk_test_51Q5n2rFfuMY7T7U1n4ihukaFKqwpoqijhWBj64m5FtXJZ0J7jmqH3TTKZTLzxSrPeyYSm5MPM1c1D7HnZWhSvaTZ00SR9KdgKp');
+// console.log(process.env.STRIPE_SECRET_KEY)
 const jwt = require("jsonwebtoken");
 const cors = require("cors");
 require("dotenv").config();
@@ -178,6 +180,25 @@ async function run() {
       // console.log(result)
       res.send(result);
     });
+
+
+    //stripe payment Intent
+    app.post('/create-payment-intent',async(req,res)=>{
+      const {price} = req.body;
+      //minimum amount restriction in stripe. change it back later
+      const amount = parseInt(1 * 100);
+      // console.log(a)
+
+      const paymentIntent = await stripe.paymentIntents.create({
+        amount: amount,
+        currency: 'usd',
+        payment_method_types: ['card']
+      })
+
+      res.send({
+        clientSecret: paymentIntent.client_secret
+      })
+    })
 
     // cart item post
     app.post("/cart", async (req, res) => {
