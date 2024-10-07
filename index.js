@@ -1,6 +1,8 @@
 const express = require("express");
 const app = express();
-const stripe = require("stripe")('sk_test_51Q5n2rFfuMY7T7U1n4ihukaFKqwpoqijhWBj64m5FtXJZ0J7jmqH3TTKZTLzxSrPeyYSm5MPM1c1D7HnZWhSvaTZ00SR9KdgKp');
+const stripe = require("stripe")(
+  "sk_test_51Q5n2rFfuMY7T7U1n4ihukaFKqwpoqijhWBj64m5FtXJZ0J7jmqH3TTKZTLzxSrPeyYSm5MPM1c1D7HnZWhSvaTZ00SR9KdgKp"
+);
 // console.log(process.env.STRIPE_SECRET_KEY)
 const jwt = require("jsonwebtoken");
 const cors = require("cors");
@@ -28,6 +30,7 @@ const menucollection = client.db("BistroDB").collection("menu");
 const reviewscollection = client.db("BistroDB").collection("reviews");
 const cartcollection = client.db("BistroDB").collection("cart");
 const testcollection = client.db("BistroDB").collection("test");
+const paymentcollection = client.db("BistroDB").collection("payment");
 
 async function run() {
   try {
@@ -181,24 +184,37 @@ async function run() {
       res.send(result);
     });
 
-
     //stripe payment Intent
-    app.post('/create-payment-intent',async(req,res)=>{
-      const {price} = req.body;
+    app.post("/create-payment-intent", async (req, res) => {
+      const { price } = req.body;
       //minimum amount restriction in stripe. change it back later
       const amount = parseInt(1 * 100);
       // console.log(a)
 
       const paymentIntent = await stripe.paymentIntents.create({
         amount: amount,
-        currency: 'usd',
-        payment_method_types: ['card']
-      })
+        currency: "usd",
+        payment_method_types: ["card"],
+      });
 
       res.send({
-        clientSecret: paymentIntent.client_secret
-      })
-    })
+        clientSecret: paymentIntent.client_secret,
+      });
+    });
+
+    app.post("/payment", async (req, res) => {
+      const payment = req.body;
+      const paymentResult = await paymentcollection.insertOne(payment);
+      console.log(payment);
+      // res.send(paymentResult);
+      const query = {
+        _id: {
+          $in: payment.cartIds.map((id) => new ObjectId(id)),
+        },
+      };
+      const deleteResult = await cartcollection.deleteMany(query);
+      res.send({paymentResult,deleteResult});
+    });
 
     // cart item post
     app.post("/cart", async (req, res) => {
