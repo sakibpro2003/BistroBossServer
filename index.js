@@ -223,6 +223,16 @@ async function run() {
       res.send(cart);
     });
 
+    //get payment history
+    app.get('/payment/:email',async (req, res) => {
+      const query = {email: req.params.email};
+      if(req.params.email !== req.decoded.email ){
+        return res.status(403).send({message: 'forbidden acces'})
+      }
+      const result = await paymentcollection.find(query).toArray();
+      res.send(result);
+    })
+
     //cart item delete api
     // app.delete("/cartdelete/:id",async(req,res)=>{
     //   const id = req.params.id;
