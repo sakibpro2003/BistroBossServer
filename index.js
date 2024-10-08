@@ -224,11 +224,14 @@ async function run() {
     });
 
     //get payment history
-    app.get('/payment/:email',async (req, res) => {
+    app.get('/payments/:email', async(req, res) => {
       const query = {email: req.params.email};
-      if(req.params.email !== req.decoded.email ){
-        return res.status(403).send({message: 'forbidden acces'})
-      }
+
+      // TODO: check decoded email to verify with user email
+      // if(req.params.email !== req.decoded.email ){
+      //   return res.status(403).send({message: 'forbidden acces'})
+      // }
+      
       const result = await paymentcollection.find(query).toArray();
       res.send(result);
     })
