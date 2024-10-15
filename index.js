@@ -213,7 +213,7 @@ async function run() {
         },
       };
       const deleteResult = await cartcollection.deleteMany(query);
-      res.send({paymentResult,deleteResult});
+      res.send({ paymentResult, deleteResult });
     });
 
     // cart item post
@@ -224,17 +224,51 @@ async function run() {
     });
 
     //get payment history
-    app.get('/payments/:email', async(req, res) => {
-      const query = {email: req.params.email};
+    app.get("/payments/:email", async (req, res) => {
+      const query = { email: req.params.email };
 
       // TODO: check decoded email to verify with user email
       // if(req.params.email !== req.decoded.email ){
       //   return res.status(403).send({message: 'forbidden acces'})
       // }
-      
+
       const result = await paymentcollection.find(query).toArray();
       res.send(result);
+    });
+
+    // order stats & aggregate 
+    app.get('/order-stats', async(req,res)=>{
+      const result = await paymentcollection.aggregate().toArray();
+      res.send(result);
     })
+
+    // stats and counts
+
+    //todo: use verify admin and token
+    app.get("/admin-stats", async (req, res) => {
+      const menuItems = await menucollection.estimatedDocumentCount();
+      const userCount = await usercollection.estimatedDocumentCount();
+      const totalOrder = await paymentcollection.estimatedDocumentCount();
+      const result = await paymentcollection
+        .aggregate([
+          {
+            $group: {
+              _id: null,
+              totalRevenue: {
+                $sum: '$price'
+              },
+            },
+          },
+        ])
+        .toArray();
+      const revenue =  result.length > 0 ? result[0].totalRevenue : 0;
+      res.send({
+        menuItems,
+        userCount,
+        revenue,
+        totalOrder
+      });
+    });
 
     //cart item delete api
     // app.delete("/cartdelete/:id",async(req,res)=>{
