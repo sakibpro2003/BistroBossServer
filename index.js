@@ -238,7 +238,20 @@ async function run() {
 
     // order stats & aggregate 
     app.get('/order-stats', async(req,res)=>{
-      const result = await paymentcollection.aggregate().toArray();
+      const result = await paymentcollection.aggregate([
+        {
+          $unwind: '$menuItemIds'
+        },
+        {
+          $lookup:{
+            from: 'menu',
+            localField: 'menuItemIds',
+            foreignField: '_id',
+            as: 'menuItems'
+          }
+        }
+      ]).toArray();
+    
       res.send(result);
     })
 
@@ -278,10 +291,10 @@ async function run() {
     //   res.send(result);
     // })
 
-    await client.db("admin").command({ ping: 1 });
-    console.log(
-      "Pinged your deployment. You successfully connected to MongoDB!"
-    );
+    // await client.db("admin").command({ ping: 1 });
+    // console.log(
+    //   "Pinged your deployment. You successfully connected to MongoDB!"
+    // );
   } finally {
     // Ensures that the client will close when you finish/error
     // await client.close();
