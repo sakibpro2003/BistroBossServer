@@ -31,6 +31,7 @@ const reviewscollection = client.db("BistroDB").collection("reviews");
 const cartcollection = client.db("BistroDB").collection("cart");
 const testcollection = client.db("BistroDB").collection("test");
 const paymentcollection = client.db("BistroDB").collection("payment");
+const messagecollection = client.db("BistroDB").collection("message");
 
 async function run() {
   try {
@@ -73,6 +74,14 @@ async function run() {
       const result = await menucollection.deleteOne(query);
       res.send(result);
     });
+
+    //message post api
+    app.post("/sendmessage", async(req,res)=>{
+      const messageData = req.body;
+      console.log(messageData)
+      const result = await messagecollection.insertOne(messageData);
+      res.send(result)
+    })
     //user related api
     app.post("/userdata", async (req, res) => {
       const user = req.body;
@@ -154,7 +163,7 @@ async function run() {
     });
 
     //get all users
-    app.get("/user", verifyToken, verifyAdmin, async (req, res) => {
+    app.get("/user",  async (req, res) => {
       const result = await usercollection.find().toArray();
       res.send(result);
     });
@@ -185,36 +194,35 @@ async function run() {
     });
 
     //stripe payment Intent
-    app.post("/create-payment-intent", async (req, res) => {
-      const { price } = req.body;
-      //minimum amount restriction in stripe. change it back later
-      const amount = parseInt(1 * 100);
-      // console.log(a)
+    // app.post("/create-payment-intent", async (req, res) => {
+    //   const { price } = req.body;
+    //   //minimum amount restriction in stripe. change it back later
+    //   const amount = parseInt(1 * 100);
+    //   // console.log(a)
 
-      const paymentIntent = await stripe.paymentIntents.create({
-        amount: amount,
-        currency: "usd",
-        payment_method_types: ["card"],
-      });
+    //   const paymentIntent = await stripe.paymentIntents.create({
+    //     amount: amount,
+    //     currency: "usd",
+    //     payment_method_types: ["card"],
+    //   });
 
-      res.send({
-        clientSecret: paymentIntent.client_secret,
-      });
-    });
+    //   res.send({
+    //     clientSecret: paymentIntent.client_secret,
+    //   });
+    // });
 
-    app.post("/payment", async (req, res) => {
-      const payment = req.body;
-      const paymentResult = await paymentcollection.insertOne(payment);
-      console.log(payment);
-      // res.send(paymentResult);
-      const query = {
-        _id: {
-          $in: payment.cartIds.map((id) => new ObjectId(id)),
-        },
-      };
-      const deleteResult = await cartcollection.deleteMany(query);
-      res.send({ paymentResult, deleteResult });
-    });
+    // app.post("/payment", async (req, res) => {
+    //   const payment = req.body;
+    //   const paymentResult = await paymentcollection.insertOne(payment);
+    //   console.log(payment);
+    //   const query = {
+    //     _id: {
+    //       $in: payment.cartIds.map((id) => new ObjectId(id)),
+    //     },
+    //   };
+    //   const deleteResult = await cartcollection.deleteMany(query);
+    //   res.send({ paymentResult, deleteResult });
+    // });
 
     // cart item post
     app.post("/cart", async (req, res) => {
@@ -224,36 +232,36 @@ async function run() {
     });
 
     //get payment history
-    app.get("/payments/:email", async (req, res) => {
-      const query = { email: req.params.email };
+    // app.get("/payments/:email", async (req, res) => {
+    //   const query = { email: req.params.email };
 
-      // TODO: check decoded email to verify with user email
-      // if(req.params.email !== req.decoded.email ){
-      //   return res.status(403).send({message: 'forbidden acces'})
-      // }
+    //   // TODO: check decoded email to verify with user email
+    //   // if(req.params.email !== req.decoded.email ){
+    //   //   return res.status(403).send({message: 'forbidden acces'})
+    //   // }
 
-      const result = await paymentcollection.find(query).toArray();
-      res.send(result);
-    });
+    //   const result = await paymentcollection.find(query).toArray();
+    //   res.send(result);
+    // });
 
     // order stats & aggregate 
-    app.get('/order-stats', async(req,res)=>{
-      const result = await paymentcollection.aggregate([
-        {
-          $unwind: '$menuItemIds'
-        },
-        {
-          $lookup:{
-            from: 'menu',
-            localField: 'menuItemIds',
-            foreignField: '_id',
-            as: 'menuItems'
-          }
-        }
-      ]).toArray();
+    // app.get('/order-stats', async(req,res)=>{
+    //   const result = await paymentcollection.aggregate([
+    //     {
+    //       $unwind: '$menuItemIds'
+    //     },
+    //     {
+    //       $lookup:{
+    //         from: 'menu',
+    //         localField: 'menuItemIds',
+    //         foreignField: '_id',
+    //         as: 'menuItems'
+    //       }
+    //     }
+    //   ]).toArray();
     
-      res.send(result);
-    })
+    //   res.send(result);
+    // })
 
     // stats and counts
 
